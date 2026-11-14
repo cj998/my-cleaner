@@ -1,0 +1,11 @@
+# 배포에는 쓰는 사람에게 필요한 것만 — 정리기 화면 · lib/ · rules/ · data/ (사용자가 정함 2026-11-14)
+# 나머지는 모두 뺀다. 아래 목록에 있는 것만 올라간다.
+# CLAUDE.md · README.md 는 저장소에만 있고 배포에는 없다.
+/*
+!/index.html
+!/style.css
+!/app.js
+!/clean.js
+!/lib
+!/rules
+!/data

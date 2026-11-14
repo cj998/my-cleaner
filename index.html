@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- 이 페이지가 연결할 수 있는 곳은 이 사이트뿐이다(처방 파일 받기). 다른 곳으로는 아무것도 보낼 수 없다. -->
+  <meta http-equiv="Content-Security-Policy" content="connect-src 'self'; form-action 'none'; object-src 'none'; base-uri 'none'">
+  <title>출장비 정리기</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <h1>출장비 정리기</h1>
+      <p class="lock">넣은 파일은 이 브라우저 밖으로 나가지 않습니다. 계산은 모두 이 컴퓨터 안에서 합니다.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div id="errors" class="alert" role="alert" hidden></div>
+
+    <!-- 1. 파일 넣기 -->
+    <section class="step" id="s-drop">
+      <h2><span class="n">1</span> 엑셀 파일 넣기</h2>
+      <div id="drop" class="drop" tabindex="0" role="button" aria-label="엑셀 파일을 끌어다 놓거나 눌러서 고르기">
+        <strong>엑셀 파일을 여기에 끌어다 놓으세요</strong>
+        <span>또는 눌러서 고르기 · .xlsx · .csv</span>
+      </div>
+      <input type="file" id="pick" accept=".xlsx,.xls,.csv" hidden>
+      <p class="muted small" id="rules-status">처방 파일을 읽는 중…</p>
+    </section>
+
+    <!-- 줄 수 · 칸 수 -->
+    <section class="step" id="info" hidden>
+      <h2><span class="n">2</span> 파일 내용</h2>
+      <p class="file-name" id="file-name"></p>
+      <div class="stats">
+        <div class="stat"><div class="stat-value" id="stat-rows"></div><div class="stat-label">줄 (머리글 빼고)</div></div>
+        <div class="stat"><div class="stat-value" id="stat-cols"></div><div class="stat-label">칸</div></div>
+      </div>
+      <p class="muted small"><span id="sheet-note"></span> · 칸: <span id="col-list"></span></p>
+    </section>
+
+    <!-- 처방 -->
+    <section class="step" id="rules" hidden>
+      <h2><span class="n">3</span> 처방과 이유</h2>
+      <div id="no-rules" class="alert" hidden>
+        <strong id="no-rules-msg"></strong>
+        <p id="no-rules-hint"></p>
+        <label class="btn secondary">처방 파일(.json) 고르기
+          <input type="file" id="rules-pick" accept=".json,application/json" hidden>
+        </label>
+      </div>
+      <p class="muted small" id="rules-meta"></p>
+      <div id="rules-body"></div>
+      <div class="actions">
+        <button id="run" class="btn primary" disabled>규칙대로 정리</button>
+        <label class="link">다른 처방 파일 고르기
+          <input type="file" id="rules-pick2" accept=".json,application/json" hidden>
+        </label>
+      </div>
+    </section>
+
+    <!-- 결과 -->
+    <section class="step" id="result" hidden>
+      <h2><span class="n">4</span> 정리 결과</h2>
+      <div class="stats">
+        <div class="stat"><div class="stat-value"><span id="r-before"></span> → <span id="r-after"></span></div><div class="stat-label">행 (전 → 후)</div></div>
+        <div class="stat"><div class="stat-value" id="r-dropped"></div><div class="stat-label">지운 행</div></div>
+        <div class="stat"><div class="stat-value" id="r-changes"></div><div class="stat-label">고친 값</div></div>
+        <div class="stat"><div class="stat-value" id="r-flagged"></div><div class="stat-label">표시한 행 · <span id="r-checks"></span></div></div>
+        <div class="stat" id="r-twice-card"><div class="stat-value" id="r-twice"></div><div class="stat-label">두 번 돌려도 같은 결과</div></div>
+      </div>
+      <p class="muted small" id="r-twice-note"></p>
+      <p class="muted small" id="r-bycol"></p>
+
+      <div class="actions">
+        <button id="dl-clean" class="btn primary">정리본 내려받기 (.xlsx)</button>
+        <button id="dl-log" class="btn secondary">바꾼 기록 내려받기 (.xlsx)</button>
+      </div>
+
+      <details open>
+        <summary>바꾼 기록</summary>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>줄</th><th id="log-id"></th><th>칸</th><th>원래 값</th><th>바뀐 값</th><th>이유</th></tr></thead>
+            <tbody id="log-body"></tbody>
+          </table>
+        </div>
+        <p class="muted small" id="log-more"></p>
+      </details>
+
+      <details open>
+        <summary>표시한 줄 <span class="legend"><i class="dot"></i> 확인이 필요한 데이터</span></summary>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>줄</th><th id="flag-id"></th><th>표시</th></tr></thead>
+            <tbody id="flag-body"></tbody>
+          </table>
+        </div>
+        <p class="muted small" id="flag-more"></p>
+      </details>
+    </section>
+
+    <!-- 정답과 대조 -->
+    <section class="step" id="compare" hidden>
+      <h2><span class="n">5</span> 정답과 대조</h2>
+      <p class="muted">정답 파일은 이 사이트에 없습니다. 내 컴퓨터에서 고르면 이 브라우저 안에서만 읽습니다.</p>
+      <label class="btn secondary">정답 파일 고르기
+        <input type="file" id="answer-pick" accept=".xlsx,.xls,.csv" hidden>
+      </label>
+      <div id="cmp-out"></div>
+    </section>
+  </main>
+
+  <footer class="wrap muted small">
+    엑셀 읽기·쓰기: SheetJS Community Edition (<a href="lib/LICENSE-sheetjs.txt">Apache License 2.0</a>) — 이 사이트의 lib/ 에서 불러옵니다.
+  </footer>
+
+  <script src="lib/xlsx.full.min.js"></script>
+  <script src="clean.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

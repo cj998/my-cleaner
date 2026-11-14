@@ -1,0 +1,20 @@
+# 배포 · 실행 부산물
+.vercel/
+node_modules/
+__pycache__/
+.env
+.env.*
+
+# 어디에도 올리지 않는다 (사용자가 정함 2026-11-14)
+#   tools/  — 정답과 만든 방법
+#   진단/   — 진단 결과
+#   .claude/ — Claude Code 설정
+tools/
+진단/
+.claude/
+
+# 내려받은 정리본 · 바꾼 기록, 그 밖의 표 파일 — data/ 의 지어낸 엑셀만 올린다
+*.xlsx
+*.xls
+*.csv
+!data/*.xlsx
